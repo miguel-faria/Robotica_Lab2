@@ -1,8 +1,5 @@
-function [ robot_path ] = Path_Tracking_Virtual( path, speed, delta_time, map)
-%Path_Tracking_Virtual - virtual simulation for the robot following a given
-%path with a certain speed and interval between communications. This
-%function also prints on the map the robot current position and the
-%position where the robot should be
+function [ ref_path ] = Path_Tracking_Virtual( path, speed, delta_time, map)
+%Path_Tracking_Virtual - 
 
 x = path(1,1);
 y = path(1,2);
@@ -10,7 +7,7 @@ index = 1;
 theta = atan2(path(2,2)-path(1,2),path(2,1)-path(1,1));
 w = 0;
 point_index = 1;
-noise = speed/75;
+noise = speed/100;
 path_len = length(path);
 image(map); hold;
 
@@ -40,6 +37,8 @@ while point_index ~= path_len
     
     x_ref = path(point_index, 1);
     y_ref = path(point_index, 2);
+    ref_path(index,:) = [x_ref; y_ref];
+    index = index + 1;
     theta_ref = atan2((path(point_index+1,2)) - y_ref, (path(point_index+1,1) - x_ref));
     if point_index == 1
         delta_theta = 0;
@@ -69,11 +68,10 @@ while point_index ~= path_len
     x = x + speed*cos(theta)*delta_time + noise*speed/50*randn(1);
     y = y + speed*sin(theta)*delta_time + noise*randn(1);
     
-    robot_path(index,:) = [x y];
-    index = index + 1;
-    
     plot(path(:,1),path(:,2));
-    plot(x,y,'r*','color','r');
+    plot(x,y,'o');
+%     plot([x;x+3*cos(theta)],[y;y+3*sin(theta)]);
+    plot(x_ref,y_ref,'marker','o','color','r');
     fprintf('X: %2.4f\tY: %2.4f\nX_REF: %2.4f\tY_REF: %2.4f\n\n', x, y, x_ref, y_ref);
     pause(0.05);
 end

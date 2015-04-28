@@ -1,4 +1,6 @@
 function [ path ] = Create_Reference_Path( speed, psi, x1, y1 )
+%Create_Reference_Path - creates the path that serves as reference for the
+%robot to follow
 
     x(1) = x1;
     y(1) = y1;

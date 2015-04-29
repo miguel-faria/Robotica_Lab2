@@ -12,7 +12,6 @@ w = 0;
 point_index = 1;
 noise = speed/75;
 path_len = length(path);
-image(map); hold;
 
 while point_index ~= path_len
     
@@ -64,18 +63,26 @@ while point_index ~= path_len
     
     w = w_ref + adjust;
         
-    theta = theta + w*delta_time + 0.001*randn(1);
+    random_val = randi([-1000,1000],1,3)/1000;
     
-    x = x + speed*cos(theta)*delta_time + noise*speed/50*randn(1);
-    y = y + speed*sin(theta)*delta_time + noise*randn(1);
+    theta = theta + w*delta_time + 0.001*random_val(3);
+    
+    x = x + speed*cos(theta)*delta_time + noise*speed/50*random_val(1);
+    y = y + speed*sin(theta)*delta_time + noise*random_val(2);
     
     robot_path(index,:) = [x y];
+    velocities_path(index,:) = [speed w]; 
     index = index + 1;
     
+    
+    figure(1);
+    subplot(1,2,1); subimage(map); hold on;
     plot(path(:,1),path(:,2));
     plot(x,y,'r*','color','r');
-    fprintf('X: %2.4f\tY: %2.4f\nX_REF: %2.4f\tY_REF: %2.4f\n\n', x, y, x_ref, y_ref);
-    pause(0.05);
+    fprintf('X: %2.4f\tY: %2.4f\nX_REF: %2.4f\tY_REF: %2.4f\n\n', x, y, x_ref, y_ref); %hold off;
+%     figure(2); hold on;
+    subplot(1,2,2); plot(velocities_path(:,2), 'r*'); hold off;
+    pause(0.005);
 end
 
 hold off;

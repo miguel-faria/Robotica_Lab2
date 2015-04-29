@@ -9,8 +9,8 @@ psi = [(pi)*ones(1,150) pi:pi/99:3*pi/2 (3*pi/2)*ones(1,140) 3*pi/2:pi/99:2*pi (
         (pi)*ones(1,500) pi:-pi/139:pi/2 (pi/2)*ones(1,480) pi/2:pi/139:pi (pi)*ones(1,130)...
         pi:-pi/99:pi/2 (pi/2)*ones(1,140) pi/2:-pi/99:0 (0)*ones(1,130)];
 speed = 0.5;
-x1 = 129;
-y1 = 45;
+x1 = 128;
+y1 = 44;
 delta_time = 2.5;
 
 path = Create_Reference_Path(speed, psi, x1, y1);

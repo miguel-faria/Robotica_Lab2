@@ -4,8 +4,7 @@ function [ nav_points, s_tree ] = Get_Navigatable_Points( map )
 %and returns both the set of points and a search tree whith the points'
 %information
     
-%s_tree = Get_Map_Search_Tree(map);
-s_tree = [];
+s_tree = Get_Map_Search_Tree(map);
 map_size = size(map);
 index = 1;
 

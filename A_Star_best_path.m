@@ -1,4 +1,4 @@
-function [ path ] = A_Star_best_path( map, nav_points, waypoints )
+function [ path ] = A_Star_best_path( map, nav_points, s_tree ,waypoints )
 %A_Star_best_path - A star search for the best path in a given map that
 %passes through the given waypoints. To note that the waypoints must be at
 %least 2.
@@ -19,7 +19,7 @@ for i = 1:n_points
     start_point = waypoints(i,:);
     end_point = waypoints(i+1,:);
     
-    path = [path; A_star_search(start_point, end_point, nav_points)];
+    path = [path; A_star_search(start_point, end_point, nav_points, s_tree)];
 end
 
 image(map); hold;

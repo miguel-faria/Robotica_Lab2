@@ -25,12 +25,12 @@ while point_index ~= path_len
 %            path_interval = path(first:last,:);
 %         end
 %     end
-    if point_index < floor(path_len/2)
-        path_interval = path(1:floor(path_len/2),:);
+    if point_index < fix(path_len/2)
+        path_interval = path(1:fix(path_len/2)-1,:);
         point_index = Find_Nearest_Point(x, y, path_interval);
     else
-        path_interval = path(floor(path_len/2):path_len,:);
-        point_index = min((Find_Nearest_Point(x, y, path_interval) + floor(path_len/2)), path_len);
+        path_interval = path(fix(path_len/2):path_len,:);
+        point_index = min((Find_Nearest_Point(x, y, path_interval) + fix(path_len/2)), path_len);
     end
     
     if point_index == path_len

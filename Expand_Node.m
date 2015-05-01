@@ -2,9 +2,9 @@ function [ tree ] = Expand_Node( node )
 %Expand_Node - expands a node and generates it's descendants, if they exist
 
 tree = node;
-if node.type == 2 && node.edge_len > 3
-    tree.descendants = 1;
+if node.type == 2 && node.edge_len > 5
     tree = Generate_Descendants(node);
+    tree.descendants = 1;
 else
     tree.descendants = 0;
 end
@@ -20,7 +20,7 @@ xi = parent_start_points(1,2);
 yi = parent_start_points(1,1);
 parent_end_points = parent_node.major_points(2,:);
 
-descendant1 = Create_Node(parent_node.state(parent_start_points(1,1):division_len, parent_start_points(1,2):division_len) , division_len, parent_node,...
+descendant1 = Create_Node(parent_node.state(1:division_len, 1:division_len) , division_len, parent_node,...
                             [parent_start_points; parent_start_points + (division_len - 1)]);
 descendant2 = Create_Node(parent_node.state(1:division_len, division_len+1:2*division_len) , division_len, parent_node,...
                             [yi, xi + division_len; [yi, xi + division_len] + (division_len - 1)]);

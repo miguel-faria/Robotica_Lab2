@@ -9,12 +9,14 @@ function [ node ] = Create_Node( state_map, state_map_len, dad, major_points )
 %       - type: the type of the map portion stored (See Type_Map_Matrix
 %       function)
 
+half_node_len = fix(state_map_len(1,1)/2);
+
 node.state = state_map;
 node.dad = dad;
 node.edge_len = state_map_len(1,1);
 node.major_points = major_points;
-node.average_point = [fix((node.major_points(2,1) - node.major_points(1,1))/2)...
-                       fix((node.major_points(2,2) - node.major_points(1,2))/2)];
+node.average_point = [node.major_points(1,1) + half_node_len...
+                       node.major_points(1,2) + half_node_len];
 node.type = Type_Map_Matrix(state_map);
 
 end

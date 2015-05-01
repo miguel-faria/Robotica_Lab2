@@ -12,25 +12,16 @@ w = 0;
 point_index = 1;
 noise = speed/75;
 path_len = length(path);
+half_path_len = fix(path_len/2);
 
 while point_index ~= path_len
-    
-%     first = point_index - 10;
-%     last = point_index + 10;
-%     if first < 0
-%         path_interval = path(1:(last + (point_index - 1)),:);
-%     else if last > path_len
-%             path_interval = path((first - (path_len - point_index)):path_len,:);
-%         else
-%            path_interval = path(first:last,:);
-%         end
-%     end
-    if point_index < fix(path_len/2)
-        path_interval = path(1:fix(path_len/2)-1,:);
+        
+    if point_index < half_path_len
+        path_interval = path(1:half_path_len,:);
         point_index = Find_Nearest_Point(x, y, path_interval);
     else
-        path_interval = path(fix(path_len/2):path_len,:);
-        point_index = min((Find_Nearest_Point(x, y, path_interval) + fix(path_len/2)), path_len);
+        path_interval = path(half_path_len:path_len,:);
+        point_index = min((Find_Nearest_Point(x, y, path_interval) + half_path_len), path_len);
     end
     
     if point_index == path_len
@@ -63,7 +54,7 @@ while point_index ~= path_len
     
     w = w_ref + adjust;
         
-    random_val = randi([-1000,1000],1,3)/1000;
+    random_val = randi([-100000,100000],1,3)/100000;
     
     theta = theta + w*delta_time + 0.001*random_val(3);
     

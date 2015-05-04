@@ -35,17 +35,17 @@ while ~isempty(open_list) && objective_reached == 0
         objective_reached = 1;
         current_node = current_node.dad;
         while ~isempty(current_node)
-            plot(current_node.position(1,2), current_node.position(1,1), 'r*');
+%             plot(current_node.position(1,2), current_node.position(1,1), 'r*');
             sp_ep_path = [current_node.position; sp_ep_path];
             current_node = current_node.dad;
         end
         sp_ep_path = [sp_ep_path; objective_point];
-        pause
+%         pause
         
     else
         [open_list, open_list_pos, close_list] = Expand_Node(current_node, open_list, open_list_pos, close_list, s_tree, nav_points, objective_point);  
-%         plot(close_list(:,2), close_list(:,1), 'b*');
-%         plot(open_list_pos(:,2), open_list_pos(:,1), 'r*');
+        plot(close_list(:,2), close_list(:,1), 'b*');
+        plot(open_list_pos(:,2), open_list_pos(:,1), 'r*');
     end
 end
 end

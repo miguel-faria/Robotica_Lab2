@@ -4,7 +4,7 @@ function [ points ] = Get_Viable_Navigation_Points( tree, points )
 
 if tree.type == 0
     points = [points; tree.average_point];
-elseif tree.type == 2 && tree.edge_len > 5
+elseif tree.type == 2 && tree.edge_len > 10
     points = Get_Viable_Navigation_Points(tree.descendant1, points);
     points = Get_Viable_Navigation_Points(tree.descendant2, points);
     points = Get_Viable_Navigation_Points(tree.descendant3, points);

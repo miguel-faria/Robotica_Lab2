@@ -38,10 +38,10 @@ while point_index ~= path_len
     end
     
     w_ref_sqrt = sqrt((path(point_index+1,1) - x_ref)^2 + (path(point_index+1,2) - y_ref)^2);
-    if abs(w_ref_sqrt) < 0.0025
-        w_ref = 0.15*sign(w_ref);
-    else
-        w_ref = delta_theta * speed / w_ref_sqrt;
+    w_ref = delta_theta * speed / w_ref_sqrt;
+    
+    if abs(w_ref) > 0.5
+        w_ref = 0.5*sign(w_ref);
     end
     
     errors_world = [x_ref - x; y_ref - y; theta_ref - theta];
@@ -60,7 +60,7 @@ while point_index ~= path_len
     
     w = w_ref + adjust;
         
-    random_val = randi([-100000,100000],1,3)/100000;
+    random_val = randi([-100000,100000],1,3)/500000;
     
     theta = theta + w*delta_time + 0.001*random_val(3);
     
@@ -76,12 +76,13 @@ while point_index ~= path_len
     figure(1);
     subplot(1,2,1); subimage(map); hold on;
     plot(path(:,1),path(:,2));
-    plot(x,y,'r*','color','r');
+    plot(x,y,'r*');
+%     plot(x_ref,y_ref,'b*');
     fprintf('X: %2.4f\tY: %2.4f\nX_REF: %2.4f\tY_REF: %2.4f\n\n', x, y, x_ref, y_ref); %hold off;
 %     figure(2); hold on;
     subplot(1,2,2); plot(velocities_path(:,2),'r*'); hold on;
     subplot(1,2,2); plot(ref_velocities(:,2), 'b*'); hold off;
-    pause(0.05);
+%     pause(0.0005);
 end
 
 hold off;

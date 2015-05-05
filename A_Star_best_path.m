@@ -19,7 +19,11 @@ for i = 1:n_points(1,1)
     start_point = [waypoints(i,2), waypoints(i,1)];
     end_point = [waypoints(i+1,2), waypoints(i+1,1)];
     
-    path_temp = [path_temp; A_star_search(start_point, end_point, s_tree, nav_points, map)];
+    if isempty(path_temp)
+        path_temp = [path_temp; A_star_search(start_point, end_point, s_tree, nav_points, map)];
+    else
+        path_temp = [path_temp(1:end-1,:); A_star_search(start_point, end_point, s_tree, nav_points, map)];
+    end
 end
 
 image(map); hold on;

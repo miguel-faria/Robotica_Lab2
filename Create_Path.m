@@ -6,11 +6,11 @@ function [ path, x, y ] = Create_Path( map, nav_points, s_tree ,waypoints, mode 
 
 if mode == 1
     path_points = A_Star_best_path(map, nav_points, s_tree, waypoints);
-    t = linspace(0,3350,length(path_points(:,1)))';
+    t = linspace(0,1000,length(path_points(:,1)))';
     ppx = pchip(t, path_points(:,2));
     ppy = pchip(t, path_points(:,1));
-    x = ppval(ppx, linspace(0,3350,3350))';
-    y = ppval(ppy, linspace(0,3350,3350))';
+    x = ppval(ppx, linspace(0,1000,1000))';
+    y = ppval(ppy, linspace(0,1000,1000))';
     path = [y, x];
 
     image(map);hold on;
@@ -18,11 +18,11 @@ if mode == 1
     
 elseif mode == 2
     path_points = A_Star_best_path(map, nav_points, s_tree, waypoints);
-    t = linspace(0,3350,length(path_points(:,1)))';
+    t = linspace(0,1000,length(path_points(:,1)))';
     ppx = spline(t, path_points(:,2));
     ppy = spline(t, path_points(:,1));
-    x = ppval(ppx, linspace(0,3350,3350))';
-    y = ppval(ppy, linspace(0,3350,3350))';
+    x = ppval(ppx, linspace(0,1000,1000))';
+    y = ppval(ppy, linspace(0,1000,1000))';
     path = [y, x];
 
     image(map);hold on;

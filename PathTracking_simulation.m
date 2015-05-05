@@ -4,16 +4,26 @@ clear all;
 format long;
 
 mapa = imread('piso5_orig.bmp');
-psi = [(pi)*ones(1,150) pi:pi/99:3*pi/2 (3*pi/2)*ones(1,140) 3*pi/2:pi/99:2*pi (2*pi)*ones(1,150)...
-        (2*pi)*ones(1,30) (2*pi)*ones(1,540) 2*pi:-pi/139:3*pi/2 (3*pi/2)*ones(1,480) 3*pi/2:-pi/139:pi...
-        (pi)*ones(1,500) pi:-pi/139:pi/2 (pi/2)*ones(1,480) pi/2:pi/139:pi (pi)*ones(1,130)...
-        pi:-pi/99:pi/2 (pi/2)*ones(1,140) pi/2:-pi/99:0 (0)*ones(1,130)];
-speed = 0.5;
-x1 = 128;
-y1 = 44;
+mapa_bw = imread('piso5_bw_noelevator.bmp');
 delta_time = 2.5;
-
-path = Create_Reference_Path(speed, psi, x1, y1);
+nav_points = [];
+s_tree = [];
+waypoints = [];
+mode = input('Choose the mode: \n1 - interpolation with pchip\n2 - interpolation with spline\n3 - use static path\nMode: ');
+if mode < 3 && mode > 0
+    disp('Give me the waypoints');
+    n_waypoints = input('How many waypoints do you want: ');
+    for i = 1:n_waypoints
+       fprintf('Waypoint %d:\n', i);
+       x_coord = input('X Coordinate: '); 
+       y_coord = input('Y Coordinate: ');
+       waypoints(i, :) = [x_coord y_coord];
+    end
+    [nav_points, s_tree] = Get_Navigatable_Points(mapa_bw);
+end
+    
+[path,x,y] = Create_Path(mapa_bw, nav_points, s_tree, waypoints, mode);
+pause;
 
 robot_path = Path_Tracking_Virtual(path, 2.5, delta_time, mapa);
 

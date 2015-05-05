@@ -5,28 +5,18 @@ function [ path, x, y ] = Create_Path( map, nav_points, s_tree ,waypoints, mode 
 %the kind of interpolation used (1 - pchip, 2 - spline, 3 - use static path)
 
 if mode == 1
-    path_points = A_Star_best_path(map, nav_points, s_tree, waypoints);
-    t = linspace(0,3350,length(path_points(:,1)))';
     ppx = pchip(t, path_points(:,2));
     ppy = pchip(t, path_points(:,1));
-    x = ppval(ppx, linspace(0,3350,3350))';
-    y = ppval(ppy, linspace(0,3350,3350))';
-    path = [y, x];
-
-    image(map);hold on;
-    plot(y, x, 'r');
+    x = ppval(ppx, linspace(0,1000,10000))';
+    y = ppval(ppy, linspace(0,1000,10000))';
+    path = [x, y];
     
 elseif mode == 2
-    path_points = A_Star_best_path(map, nav_points, s_tree, waypoints);
-    t = linspace(0,3350,length(path_points(:,1)))';
     ppx = spline(t, path_points(:,2));
     ppy = spline(t, path_points(:,1));
-    x = ppval(ppx, linspace(0,3350,3350))';
-    y = ppval(ppy, linspace(0,3350,3350))';
-    path = [y, x];
-
-    image(map);hold on;
-    plot(y, x, 'r');
+    x = ppval(ppx, linspace(0,1000,10000))';
+    y = ppval(ppy, linspace(0,1000,10000))';
+    path = [x, y];
     
 elseif mode == 3
     psi = [(pi)*ones(1,150) pi:pi/99:3*pi/2 (3*pi/2)*ones(1,140) 3*pi/2:pi/99:2*pi (2*pi)*ones(1,150)...
@@ -40,13 +30,14 @@ elseif mode == 3
     path = Create_Reference_Path(speed,psi,x1,y1);
     x = path(1:length(path),1);
     y = path(1:length(path),2);
-   
-    image(map);hold on;
-    plot(x, y, 'r');
     
 else
    error('Invalid interpolation mode!!'); 
 end
 
+
+
+image(map);hold on;
+plot(y, x, 'r');
 end
 

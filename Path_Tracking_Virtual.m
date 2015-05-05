@@ -36,7 +36,13 @@ while point_index ~= path_len
     else
         delta_theta = theta_ref - atan2((y_ref - path(point_index-1,2)), (x_ref - path(point_index-1,1)));
     end
-    w_ref = delta_theta * speed / sqrt((path(point_index+1,1) - x_ref)^2 + (path(point_index+1,2) - y_ref)^2);
+    
+    w_ref_sqrt = sqrt((path(point_index+1,1) - x_ref)^2 + (path(point_index+1,2) - y_ref)^2);
+    if abs(w_ref_sqrt) < 0.0025
+        w_ref = 0.15*sign(w_ref);
+    else
+        w_ref = delta_theta * speed / w_ref_sqrt;
+    end
     
     errors_world = [x_ref - x; y_ref - y; theta_ref - theta];
     errors_robot = [cos(theta) sin(theta) 0; -sin(theta) cos(theta) 0; 0 0 1] * errors_world;
@@ -62,7 +68,8 @@ while point_index ~= path_len
     y = y + speed*sin(theta)*delta_time + noise*random_val(2);
     
     robot_path(index,:) = [x y];
-    velocities_path(index,:) = [speed w]; 
+    velocities_path(index,:) = [speed w];
+    ref_velocities(index,:) = [speed w_ref];
     index = index + 1;
     
     
@@ -72,8 +79,9 @@ while point_index ~= path_len
     plot(x,y,'r*','color','r');
     fprintf('X: %2.4f\tY: %2.4f\nX_REF: %2.4f\tY_REF: %2.4f\n\n', x, y, x_ref, y_ref); %hold off;
 %     figure(2); hold on;
-    subplot(1,2,2); plot(velocities_path(:,2), 'r*'); hold off;
-    pause(0.005);
+    subplot(1,2,2); plot(velocities_path(:,2),'r*'); hold on;
+    subplot(1,2,2); plot(ref_velocities(:,2), 'b*'); hold off;
+    pause(0.05);
 end
 
 hold off;

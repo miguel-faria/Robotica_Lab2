@@ -37,7 +37,7 @@ while ~isempty(open_list) && objective_reached == 0
         while ~isempty(current_node)
 %             plot(current_node.position(1,2), current_node.position(1,1), 'r*');
             dad = current_node.dad;
-            if(isempty(dad) || isempty(sp_ep_path) || (sqrt((current_node.position(1,1) - sp_ep_path(1,1))^2 + (current_node.position(1,2) - sp_ep_path(1,2))^2) > 19))
+            if(sqrt((current_node.position(1,1) - dad.position(1,1))^2 + (current_node.position(1,2) - dad.position(1,2))^2) > 19)
                 sp_ep_path = [current_node.position; sp_ep_path];
             end
             current_node = current_node.dad;

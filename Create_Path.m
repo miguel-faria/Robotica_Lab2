@@ -1,11 +1,10 @@
-function [ path, x, y ] = Create_Path( map, nav_points, s_tree ,waypoints, mode )
+function [ path, x, y ] = Create_Path( map, path_points, mode )
 %Create_Path - Generates the path points for the robot to go through the
 %given waypoints using the information about the map, the possible
 %navigation points and the search tree. The mode parameter chooses between
 %the kind of interpolation used (1 - pchip, 2 - spline, 3 - use static path)
 
 if mode == 1
-    path_points = A_Star_best_path(map, nav_points, s_tree, waypoints);
     t = linspace(0,1000,length(path_points(:,1)))';
     ppx = pchip(t, path_points(:,2));
     ppy = pchip(t, path_points(:,1));
@@ -17,7 +16,6 @@ if mode == 1
     plot(y, x, 'r');
     
 elseif mode == 2
-    path_points = A_Star_best_path(map, nav_points, s_tree, waypoints);
     t = linspace(0,1000,length(path_points(:,1)))';
     ppx = spline(t, path_points(:,2));
     ppy = spline(t, path_points(:,1));
@@ -35,7 +33,7 @@ elseif mode == 3
         pi:-pi/99:pi/2 (pi/2)*ones(1,140) pi/2:-pi/99:0 (0)*ones(1,130)];
     speed = 0.5;
     x1 = 128;
-    y1 = 44;
+    y1 = 47;
 
     path = Create_Reference_Path(speed,psi,x1,y1);
     x = path(1:length(path),1);

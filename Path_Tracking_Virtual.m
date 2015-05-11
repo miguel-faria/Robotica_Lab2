@@ -48,10 +48,10 @@ while point_index ~= path_len
     errors_robot = [cos(theta) sin(theta) 0; -sin(theta) cos(theta) 0; 0 0 1] * errors_world;
     
     b = 0.05;
-    eps = 0.01;
+    qsi = 0.01;
     
     k2 = b*abs(speed);
-    k3 = 2*eps*sqrt(w_ref^2 + b*speed^2);
+    k3 = 2*qsi*sqrt(w_ref^2 + b*speed^2);
     
     adjust = errors_robot(2)*k2 + errors_robot(3)*k3;
     if abs(adjust) > 0.5

@@ -2,6 +2,9 @@ function [ ] = MyTimeCallback(serial_port, speed, ang_speed, x, y, map, velociti
 %MyTimeCallback - Function that everytime timer is called updates the robot
 %and plots shown.
 
+
+disp('Timer!!');
+fprintf('Speed: %2.4f\nAngular: %2.4f\n', speed, ang_speed);
 pioneer_set_controls(serial_port, speed, ang_speed);
 
 figure(1);

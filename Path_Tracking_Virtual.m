@@ -1,4 +1,4 @@
-function [ robot_path ] = Path_Tracking_Virtual( path, speed, delta_time, map)
+function [ robot_path,rec_ref,rec_real ] = Path_Tracking_Virtual( path, speed, delta_time, map)
 %Path_Tracking_Virtual - virtual simulation for the robot following a given
 %path with a certain speed and interval between communications. This
 %function also prints on the map the robot current position and the
@@ -13,6 +13,8 @@ point_index = 1;
 noise = speed/75;
 path_len = length(path);
 half_path_len = fix(path_len/2);
+rec_ref = [];
+rec_real = [];
 
 while point_index ~= path_len
         
@@ -54,8 +56,8 @@ while point_index ~= path_len
     k3 = 2*qsi*sqrt(w_ref^2 + b*speed^2);
     
     adjust = errors_robot(2)*k2 + errors_robot(3)*k3;
-    if abs(adjust) > 0.5
-        adjust = 0.5*sign(adjust);
+    if abs(adjust) > 0.3
+        adjust = 0.3*sign(adjust);
     end
     
     w = w_ref + adjust;
@@ -71,17 +73,19 @@ while point_index ~= path_len
     velocities_path(index,:) = [speed w];
     ref_velocities(index,:) = [speed w_ref];
     index = index + 1;
-    
+    rec_real = [rec_real;x y theta*360/(2*pi)];
+    rec_ref = [rec_ref;x_ref y_ref theta_ref*360/(2*pi)];
     
     figure(1);
     subplot(1,2,1); subimage(map); hold on;
     plot(path(:,1),path(:,2));
     plot(x,y,'r*');
 %     plot(x_ref,y_ref,'b*');
-    fprintf('X: %2.4f\tY: %2.4f\nX_REF: %2.4f\tY_REF: %2.4f\n\n', x, y, x_ref, y_ref); %hold off;
+    %fprintf('X: %2.4f\tY: %2.4f\nX_REF: %2.4f\tY_REF: %2.4f\n\n', x, y, x_ref, y_ref); %hold off;
+    fprintf('theta: %2.4f\n',theta); %hold off;
 %     figure(2); hold on;
-    subplot(1,2,2); plot(velocities_path(:,2),'r*'); hold on;
-    subplot(1,2,2); plot(ref_velocities(:,2), 'b*'); hold off;
+    subplot(1,2,2); plot(ref_velocities(:,2), 'b*'); hold on;
+    subplot(1,2,2); plot(velocities_path(:,2),'r*'); hold off;
 %     pause(0.0005);
 end
 

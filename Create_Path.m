@@ -8,8 +8,8 @@ if mode == 1
     t = linspace(0,1000,length(path_points(:,1)))';
     ppx = pchip(t, path_points(:,2));
     ppy = pchip(t, path_points(:,1));
-    x = ppval(ppx, linspace(0,1000,1000))';
-    y = ppval(ppy, linspace(0,1000,1000))';
+    x = ppval(ppx, linspace(0,1000,4000))';
+    y = ppval(ppy, linspace(0,1000,4000))';
     path = [y, x];
 
     image(map);hold on;

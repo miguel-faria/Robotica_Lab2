@@ -1,10 +1,10 @@
-close all;
-clear all;
-format long;
-delete(timerfindall);
+close all
+clear all
+format long
+delete(timerfindall)
 
 %Constants and Static objects
-map = imread('piso5_orig.bmp');
+map = imread('piso5_bw.jpg');
 map_bw = imread('piso5_bw_noelevator.bmp');
 map_size = size(map);
 real_to_map = 26875/map_size(1,1); %ratio betwwen the tower's real dimentsions and the map dimensions, conversion from mm to pixeis
@@ -12,30 +12,24 @@ sonar_alert_dist_level_1 = 250; %distance in mm, warning level one used to preve
 sonar_alert_dist_level_2 = 150; %distance in mm, warning level two minimum distance allowed to an object to prevent collisions
 max_robot_error_line2 = 15;
 max_robot_error_line3 = 15;
-max_value_w = 45;
-pause_time = 1;
+max_robot_error = 20;
+max_value_w = 30;
+pause_time = .5;
 
 %Obtaining inputs of the robot
-x_init = input('Robot X coord starting position on map: ');
-y_init = input('Robot Y coord starting position on map: ');
+x_init = 60;
+y_init = 60;
 % theta_initi = input('Robot initial orientation: ');
-v_init = input('Robot starting linear speed: ');
-w_init = input('Robot starting angular velocity: ');
-time_period = input('Timer period: ');
-sp_COM = input('COM port robot is plugged into: ');
-mode = input('Choose the mode: \n1 - interpolation with pchip\n2 - interpolation with spline\n3 - use static path\n4 - use static path 2\nMode: ');
+v_init = 100;
+w_init = 0;
+time_period = 1;
+sp_COM = 'COM12';
+mode = 1;
 path_points = [];
 
 if mode < 3 && mode > 0
-    disp('Give me the waypoints');
-    n_waypoints = input('How many waypoints do you want: ');
-    for i = 1:n_waypoints
-        fprintf('Waypoint %d:\n', i);
-        x_coord = input('X Coordinate: ');
-        y_coord = input('Y Coordinate: ');
-        waypoints(i, :) = [x_coord y_coord];
-    end
-    
+    waypoints = [x_init y_init; 50 100; 45 120; 45 130; 50 140; 130 145;415 145; 435 175; 435 415; 415 430; 160 430; 140 415; 140 175; 130 145; 58 145; 50 120; x_init y_init];
+%     waypoints = [x_init y_init; 415 147; 433 160; 433 417; 417 433; 160 433; 147 410; x_init y_init];
     [nav_points, s_tree] = Get_Navigatable_Points(map_bw);
     path_points = A_Star_best_path(map_bw, nav_points, s_tree, waypoints);
 end
@@ -68,7 +62,8 @@ x_map = x_init;
 y_map = y_init;
 x_init_real = x_init * real_to_map;
 y_init_real = y_init * real_to_map;
-theta = fix(atan2(path_real(2,2)-path_real(1,2),path_real(2,1)-path_real(1,1))*(360/2)/pi);
+theta = fix(atan2(path_real(2,1)-path_real(1,1),path_real(2,2)-path_real(1,2))*(360/2)/pi);
+theta_offset = 90;
 theta_map = atan2(path(2,2)-path(1,2),path(2,1)-path(1,1));
 velocities(index, :) = [v_init w_init];
 index = index + 1;
@@ -82,10 +77,10 @@ odometry_data = [];
 optical_data = [];
 rec_optical_data = [];
 rec_moved = [];
-rec_ref = [];
-t = 1;
+rec_ref = []; 
+v_last = v_init;
 
-pioneer_init(sp)
+pioneer_init(sp);
 pioneer_set_heading(sp,theta)
 pause(3);
 pioneer_set_controls(sp,v_real,w_real)
@@ -102,9 +97,12 @@ while point_index ~= path_real_len
     odometry_data = pioneer_read_odometry;
     x_odo = odometry_data(1);
     y_odo = odometry_data(2);
-    theta_odo = fix(odometry_data(3)*360/4096);
+    theta_read = fix(odometry_data(3)*360/4096);
+    theta_odo = theta_read;
     if theta_odo > 180
         theta_odo = theta_odo - 360;
+    elseif theta_odo < -180
+        theta_odo = theta_odo + 360;
     else
         theta_odo = theta_odo;
     end
@@ -115,27 +113,26 @@ while point_index ~= path_real_len
     rec_moved = [rec_moved;x y theta];
     if point_index < half_path_real_len
         path_interval = path_real(1:half_path_real_len,:); 
-        point_index = Find_Nearest_Point(x, y, path_interval)
+        point_index = Find_Nearest_Point_Real(x, y, path_interval, point_index);
     else
         path_interval = path_real(half_path_real_len:path_real_len,:);
-        point_index = min((Find_Nearest_Point(x, y, path_interval) + half_path_real_len), path_real_len)
+        point_index = min((Find_Nearest_Point_Real(x, y, path_interval, point_index) + half_path_real_len), path_real_len);
     end
-    
     if point_index == path_real_len
         pioneer_close(sp);
         break;
     end
     
-    x_ref = path_real(point_index, 1);
-    y_ref = path_real(point_index, 2);
-    theta_ref = atan2(1000*(path_real(point_index+1,2)) - y_ref, 1000*(path_real(point_index+1,1) - x_ref))*(360/2)/pi;
-    rec_ref = [rec_ref;x_ref y_ref theta_ref];
+    x_ref = path_real(point_index, 2);
+    y_ref = path_real(point_index, 1);
+    theta_ref = atan2(1000*(path_real(point_index+1,1) - y_ref), 1000*(path_real(point_index+1,2) - x_ref))*(360/2)/pi;
+    rec_ref = [rec_ref;x_ref y_ref theta_ref point_index];
     if point_index == 1
         delta_theta = 0;
     else
-        delta_theta = theta_ref - atan2(1000*(y_ref - path_real(point_index-1,2)), 1000*(x_ref - path_real(point_index-1,1)))*(360/2)/pi;
+        delta_theta = theta_ref - atan2(1000*(y_ref - path_real(point_index-1,1)), 1000*(x_ref - path_real(point_index-1,2)))*(360/2)/pi;
     end
-    
+        
     w_ref_sqrt = sqrt((path_real(point_index+1,1) - path_real(point_index, 1))^2 + (path_real(point_index+1,2) - path_real(point_index, 2))^2);
     w_ref = delta_theta * v_real / w_ref_sqrt;
     
@@ -151,12 +148,18 @@ while point_index ~= path_real_len
     end
     
     errors_world = [x_ref - x; y_ref - y; theta_error];
+    if abs(errors_world(1)) > 500
+        errors_world(1) = 500 * sign(errors_world(1));
+    end
+    if abs(errors_world(2)) > 500
+        errors_world(2) = 500 * sign(errors_world(2));
+    end
     errors_robot = [cos(theta_ref) sin(theta_ref) 0; -sin(theta_ref) cos(theta_ref) 0; 0 0 1] * errors_world;
     
     % Adjustments due to errors of the robot against the reference path
     robot_internal_error = 0.5 * robot_internal_error * scale_error + errors_robot(2) * scale_error;
     
-    b = 0.025;
+    b = 0.005;
     qsi = 0.9;
     
     k2 = b*abs(v_real)*robot_internal_error;
@@ -171,8 +174,12 @@ while point_index ~= path_real_len
     if abs(adjust_robot_errors3) > max_robot_error_line3
         adjust_robot_errors3 = max_robot_error_line3*sign(adjust_robot_errors3);
     end
-    
+     
     adjust_robot_errors = adjust_robot_errors2 + adjust_robot_errors3;
+    
+    if abs(adjust_robot_errors) > max_robot_error
+        adjust_robot_errors = max_robot_error * sign(adjust_robot_errors);
+    end
     
     %Adjustments due to the optical information
     optical_data = pioneer_read_sonars;
@@ -226,13 +233,12 @@ while point_index ~= path_real_len
 %             end
 %         end
 %         if(optical_data(i) < 350)
-%             if i < 5
-%                 adjust_optical = adjust_optical - (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(i));
-%             else
-%                 adjust_optical = adjust_optical + (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(i));
-%             end
+%                 if i < 5
+%                     adjust_optical = adjust_optical - (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(i));
+%                 else
+%                     adjust_optical = adjust_optical + (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(i));
+%                 end
 %         end
-%         
 %     end
 %     
 %     adjust_optical = adjust_optical / 4000*scale_error*10;
@@ -249,24 +255,37 @@ while point_index ~= path_real_len
         w_real = max_value_w * sign(w_real);
     end
         
+    if abs(w_ref) > 15
+        v_real = v_last - fix(v_last/2);
+        v_last = v_real;
+    elseif v_last < v_init;
+        v_real = min(v_last + fix(v_last*1.5),v_init);
+        v_last = v_real;
+    end
+    
     if danger_level == 2
         v_real = fix(v_init/4);
     elseif danger_level == 1;
         v_real = fix(v_init/2);
     end
-        
+    
     velocities(index, :) = [v_real w_real];
     velocities_ref(index, :) = [v_real w_ref];
     index = index + 1;
     pioneer_set_controls(sp, v_real, w_real)
     figure(1);
-    subplot(1,2,1); subimage(map); hold on;
-    plot(path(:,1), path(:,2));
-    plot(path(point_index, 1), path(point_index, 2), 'r*');
+    subplot(1,2,1); subimage(map_bw); hold on;
+    plot(path(:,1), path(:,2)); hold on;
+    plot(path(point_index, 1), path(point_index, 2), 'r*'); hold on;
     subplot(1,2,2); plot(velocities_ref(:,2),'b*'); hold on;
     %subplot(1,2,2); plot(velocities(:,1),'bo'); hold on;
-    subplot(1,2,2); plot(velocities(:,2),'r*');
-%     pause(pause_time)
+    subplot(1,2,2); plot(velocities(:,2),'r*'); hold off;
+    pause(pause_time)
+
+%     if(abs(theta_ref-theta) >20)
+%         break;
+%     end
+
 end
 % stop(timer_obj);
 % delete(timer_obj);

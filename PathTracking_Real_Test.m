@@ -3,13 +3,15 @@ clear all
 format long
 delete(timerfindall)
 
+% cleanupObj = onCleanUp(@() pioneer_set_controls(sp,0,0));   
+
 %Constants and Static objects
 map = imread('piso5_bw.jpg');
 map_bw = imread('piso5_bw_noelevator.bmp');
 map_size = size(map);
 real_to_map = 26875/map_size(1,1); %ratio betwwen the tower's real dimentsions and the map dimensions, conversion from mm to pixeis
-sonar_alert_dist_level_1 = 250; %distance in mm, warning level one used to prevent the robot from turning in that direction
-sonar_alert_dist_level_2 = 150; %distance in mm, warning level two minimum distance allowed to an object to prevent collisions
+sonar_alert_dist_level_1 = 350; %distance in mm, warning level one used to prevent the robot from turning in that direction
+sonar_alert_dist_level_2 = 250; %distance in mm, warning level two minimum distance allowed to an object to prevent collisions
 max_robot_error_line2 = 15;
 max_robot_error_line3 = 15;
 max_robot_error = 20;
@@ -17,10 +19,10 @@ max_value_w = 30;
 pause_time = .5;
 
 %Obtaining inputs of the robot
-x_init = 60;
-y_init = 60;
+x_init = 130;
+y_init = 144;
 % theta_initi = input('Robot initial orientation: ');
-v_init = 100;
+v_init = 125;
 w_init = 0;
 time_period = 1;
 sp_COM = 'COM12';
@@ -28,8 +30,10 @@ mode = 1;
 path_points = [];
 
 if mode < 3 && mode > 0
-    waypoints = [x_init y_init; 50 100; 45 120; 45 130; 50 140; 130 145;415 145; 435 175; 435 415; 415 430; 160 430; 140 415; 140 175; 130 145; 58 145; 50 120; x_init y_init];
-%     waypoints = [x_init y_init; 415 147; 433 160; 433 417; 417 433; 160 433; 147 410; x_init y_init];
+%     waypoints = [x_init y_init; 52 100; 54 110; 56 125; 60 140; 130 144;420 145; 433 170; 433 420; 420 430; 155 430; 140 415; ...
+%         135 165; 135 155; 130 144; 60 140; 56 125; 54 110; 52 100; x_init y_init];
+%     waypoints = [x_init y_init; 50 100; 45 120; 45 130; 50 140; 130 145;415 145; 435 175; 435 415; 415 430; 160 430; 140 415; 140 175; 130 145; 58 145; 50 120; x_init y_init];
+    waypoints = [x_init y_init; 420 145; 433 170; 433 420; 420 430; 155 430; 140 415; 135 165; 135 155; x_init y_init];
     [nav_points, s_tree] = Get_Navigatable_Points(map_bw);
     path_points = A_Star_best_path(map_bw, nav_points, s_tree, waypoints);
 end
@@ -62,7 +66,7 @@ x_map = x_init;
 y_map = y_init;
 x_init_real = x_init * real_to_map;
 y_init_real = y_init * real_to_map;
-theta = fix(atan2(path_real(2,1)-path_real(1,1),path_real(2,2)-path_real(1,2))*(360/2)/pi);
+theta = fix(atan2(path(2,1)-path(1,1),path(2,2)-path(1,2))*(360/2)/pi);
 theta_offset = 90;
 theta_map = atan2(path(2,2)-path(1,2),path(2,1)-path(1,1));
 velocities(index, :) = [v_init w_init];
@@ -79,6 +83,8 @@ rec_optical_data = [];
 rec_moved = [];
 rec_ref = []; 
 v_last = v_init;
+counter = -1;
+reachHalf = false;
 
 pioneer_init(sp);
 pioneer_set_heading(sp,theta)
@@ -93,6 +99,7 @@ pioneer_set_controls(sp,v_real,w_real)
 while point_index ~= path_real_len
     
     %Update velocity and angular velocity
+    pause_time = 0.5;
     v_real = v_init;
     odometry_data = pioneer_read_odometry;
     x_odo = odometry_data(1);
@@ -115,9 +122,17 @@ while point_index ~= path_real_len
         path_interval = path_real(1:half_path_real_len,:); 
         point_index = Find_Nearest_Point_Real(x, y, path_interval, point_index);
     else
+        if(reachHalf)
+           reachHalf = false;
+        else
+            point_index = 0;
+            reachHalf = true;
+        end
+        disp('Cheguei a meio!!');
         path_interval = path_real(half_path_real_len:path_real_len,:);
         point_index = min((Find_Nearest_Point_Real(x, y, path_interval, point_index) + half_path_real_len), path_real_len);
     end
+    
     if point_index == path_real_len
         pioneer_close(sp);
         break;
@@ -136,8 +151,8 @@ while point_index ~= path_real_len
     w_ref_sqrt = sqrt((path_real(point_index+1,1) - path_real(point_index, 1))^2 + (path_real(point_index+1,2) - path_real(point_index, 2))^2);
     w_ref = delta_theta * v_real / w_ref_sqrt;
     
-    if abs(w_ref) > 45
-        w_ref = 45 * sign(w_ref);
+    if abs(w_ref) > max_value_w
+        w_ref = max_value_w * sign(w_ref);
     end
     
     theta_error = theta_ref - theta;
@@ -148,19 +163,19 @@ while point_index ~= path_real_len
     end
     
     errors_world = [x_ref - x; y_ref - y; theta_error];
-    if abs(errors_world(1)) > 500
-        errors_world(1) = 500 * sign(errors_world(1));
-    end
-    if abs(errors_world(2)) > 500
-        errors_world(2) = 500 * sign(errors_world(2));
-    end
+%     if abs(errors_world(1)) > 500
+%         errors_world(1) = 500 * sign(errors_world(1));
+%     end
+%     if abs(errors_world(2)) > 500
+%         errors_world(2) = 500 * sign(errors_world(2));
+%     end
     errors_robot = [cos(theta_ref) sin(theta_ref) 0; -sin(theta_ref) cos(theta_ref) 0; 0 0 1] * errors_world;
     
     % Adjustments due to errors of the robot against the reference path
     robot_internal_error = 0.5 * robot_internal_error * scale_error + errors_robot(2) * scale_error;
     
     b = 0.005;
-    qsi = 0.9;
+    qsi = 0.85;
     
     k2 = b*abs(v_real)*robot_internal_error;
     k3 = 2*qsi*sqrt(w_ref^2 + b*v_real^2)*scale_error;
@@ -195,53 +210,53 @@ while point_index ~= path_real_len
     adjust_optical = 0;
     danger_level = 0;
     
-%     %90 degrees sonars check
-%     if(optical_data(1) <= sonar_alert_dist_level_2)
-%         lateral_sensors_status(1) = 2;
-%     elseif(optical_data(1) < sonar_alert_dist_level_1)
-%         lateral_sensors_status(1) = 1;
-%     end
-%     
-%     if(optical_data(8) <= sonar_alert_dist_level_2)
-%         lateral_sensors_status(4) = 2;
-%     elseif(optical_data(8) < sonar_alert_dist_level_1)
-%         lateral_sensors_status(4) = 1;
-%     end
-%     
-%     %50 degrees sonars check
-%     if(optical_data(2) <= 200)
-%         lateral_sensors_status(2) = 2;
-%         adjust_optical = adjust_optical - (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(2));
-%     elseif(optical_data(2) < 300)
-%         lateral_sensors_status(2) = 1;
-%     end
-%     
-%     if(optical_data(7) <= 200)
-%         lateral_sensors_status(3) = 2;
-%         adjust_optical = adjust_optical + (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(2));
-%     elseif(optical_data(7) < 300)
-%         lateral_sensors_status(3) = 1;
-%     end
-%     
-%     %frontal sonars (10 and 30 degrees) check
-%     for i = 3:6
-%         if(danger_level ~= 2)
-%             if(optical_data(i) <= 250)
-%                 danger_level = 2;
-%             elseif(optical_data(i) < 350)
-%                 danger_level = 1;
-%             end
-%         end
-%         if(optical_data(i) < 350)
-%                 if i < 5
-%                     adjust_optical = adjust_optical - (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(i));
-%                 else
-%                     adjust_optical = adjust_optical + (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(i));
-%                 end
-%         end
-%     end
-%     
-%     adjust_optical = adjust_optical / 4000*scale_error*10;
+    %90 degrees sonars check
+    if(optical_data(1) <= sonar_alert_dist_level_2)
+        lateral_sensors_status(1) = 2;
+    elseif(optical_data(1) < sonar_alert_dist_level_1)
+        lateral_sensors_status(1) = 1;
+    end
+    
+    if(optical_data(8) <= sonar_alert_dist_level_2)
+        lateral_sensors_status(4) = 2;
+    elseif(optical_data(8) < sonar_alert_dist_level_1)
+        lateral_sensors_status(4) = 1;
+    end
+    
+    %50 degrees sonars check
+    if(optical_data(2) <= 200)
+        lateral_sensors_status(2) = 2;
+        adjust_optical = adjust_optical - (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(2));
+    elseif(optical_data(2) < 300)
+        lateral_sensors_status(2) = 1;
+    end
+    
+    if(optical_data(7) <= 200)
+        lateral_sensors_status(3) = 2;
+        adjust_optical = adjust_optical + (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(2));
+    elseif(optical_data(7) < 300)
+        lateral_sensors_status(3) = 1;
+    end
+    
+    %frontal sonars (10 and 30 degrees) check
+    for i = 3:6
+        if(danger_level ~= 2)
+            if(optical_data(i) <= 250)
+                danger_level = 2;
+            elseif(optical_data(i) < 350)
+                danger_level = 1;
+            end
+        end
+        if(optical_data(i) < 500)
+                if i < 5
+                    adjust_optical = adjust_optical - (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(i));
+                else
+                    adjust_optical = adjust_optical + (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(i));
+                end
+        end
+    end
+    
+    adjust_optical = adjust_optical / 4000*scale_error*10;
     
     w_real = fix(w_ref + adjust_robot_errors + adjust_optical);
     
@@ -256,11 +271,21 @@ while point_index ~= path_real_len
     end
         
     if abs(w_ref) > 15
-        v_real = v_last - fix(v_last/2);
+        v_real = max(60 ,v_last - fix(v_last/4));
         v_last = v_real;
     elseif v_last < v_init;
         v_real = min(v_last + fix(v_last*1.5),v_init);
         v_last = v_real;
+    elseif v_last == v_real && v_real == v_init
+        if counter < 0
+            counter = 0;
+        end
+        counter = counter + pause_time;
+        if(mod(counter,5) == 0)
+           w_real = w_real - fix(0.044747349*360/(2*pi))*4;
+           v_real = v_init + 25;
+           pause_time = 1.25;
+        end
     end
     
     if danger_level == 2
@@ -272,7 +297,14 @@ while point_index ~= path_real_len
     velocities(index, :) = [v_real w_real];
     velocities_ref(index, :) = [v_real w_ref];
     index = index + 1;
-    pioneer_set_controls(sp, v_real, w_real)
+    v_real
+%     if abs(delta_theta) > 89 && abs(delta_theta) < 91
+%        pioneer_set_controls(sp, v_real/2, 10*sign(w_real))
+%        pause(4.5);
+%        pioneer_set_controls(sp, v_init, 0)
+%     else
+        pioneer_set_controls(sp, v_real, w_real)
+%     end
     figure(1);
     subplot(1,2,1); subimage(map_bw); hold on;
     plot(path(:,1), path(:,2)); hold on;

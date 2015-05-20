@@ -25,7 +25,7 @@ turn_correct = true;
 x_init = 50;
 y_init = 60;
 % theta_initi = input('Robot initial orientation: ');
-v_init = 100;
+v_init = 125;
 w_init = 0;
 time_period = 1;
 sp_COM = 'COM11';
@@ -33,10 +33,10 @@ mode = 1;
 path_points = [];
 
 if mode < 3 && mode > 0
-%      waypoints = [x_init y_init; 54 100; 56 110; 58 125; 64 140; 130 144;420 145; 433 170; 433 420; 420 430; 155 430; 140 415; ...
-%          135 165; 135 155; 130 144; 64 140; 58 125; 56 110; 54 100; x_init y_init];
-        waypoints = [x_init y_init; 54 100; 56 110; 58 125; 64 140; 130 144; 135 155; 135 165; 140 415; 155 430; 420 430; 433 420; 433 170; 420 145; ...
-         130 144; 64 140; 58 125; 56 110; 54 100; x_init y_init];
+     waypoints = [x_init y_init; 54 100; 56 110; 58 125; 64 140; 130 144; 420 145; 433 170; 433 420; 420 430; 155 430; 140 415; ...
+         135 165; 135 155; 130 144; 64 140; 58 125; 56 110; 54 100; x_init y_init];
+%         waypoints = [x_init y_init; 54 100; 56 110; 58 125; 64 140; 130 144; 132.5 150; 135 155; 138 165; 140 415; 155 430; 420 430; 433 420; 433 170; 420 145; ...
+%          130 144; 64 140; 58 125; 56 110; 54 100; x_init y_init];
 %     waypoints = [x_init y_init; 50 100; 45 120; 45 130; 50 140; 130 145;415 145; 435 175; 435 415; 415 430; 160 430; 140 415; 140 175; 130 145; 58 145; 50 120; x_init y_init];
 %     waypoints = [x_init y_init; 420 145; 433 170; 433 420; 420 430; 155 430; 140 415; 135 165; 135 155; x_init y_init];
     [nav_points, s_tree] = Get_Navigatable_Points(map_bw);
@@ -192,7 +192,7 @@ while point_index ~= path_real_len
     % Adjustments due to errors of the robot against the reference path
     robot_internal_error = 0.5 * robot_internal_error * scale_error + errors_robot(2) * scale_error;
     
-    b = 0.0005;
+    b = 0.001;
     qsi = 0.9;
     
     k2 = b*abs(v_real)*robot_internal_error;
@@ -251,16 +251,16 @@ while point_index ~= path_real_len
     end
     
     %50 degrees sonars check
-    if(optical_data(2) <= 300)
+    if(optical_data(2) <= 200)
         lateral_sensors_status(2) = 2;
         adjust_optical = adjust_optical - (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(2));
-    elseif(optical_data(2) < 400)
+    elseif(optical_data(2) < 300)
         lateral_sensors_status(2) = 1;
     end
     
     if(optical_data(7) <= 200)
         lateral_sensors_status(3) = 2;
-        adjust_optical = adjust_optical + (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(2));
+        adjust_optical = adjust_optical + (135 - abs(sensors_angles(7)))*(sonar_alert_dist_level_1 - optical_data(7));
     elseif(optical_data(7) < 300)
         lateral_sensors_status(3) = 1;
     end
@@ -313,7 +313,7 @@ while point_index ~= path_real_len
         if((((x_init_real - x_ref)^2 + (y_init_real - y_ref)^2) > (4500^2 + 2400^2)) && mod(counter, 10) == 0)
             disp('correcçao horizontal')
            corrected_horizontal = true;
-           w_real = w_real - fix(0.044747349*360/(2*pi))*2;
+           w_real = w_real - fix(0.044747349*360/(2*pi));
 %            v_real = v_init + 25;
         end
     end

@@ -207,14 +207,8 @@ while point_index ~= path_real_len
     if abs(adjust_robot_errors3) > max_robot_error_line3
         adjust_robot_errors3 = max_robot_error_line3*sign(adjust_robot_errors3);
     end
-     
-    adjust_robot_errors = adjust_robot_errors2 + adjust_robot_errors3;
-    
-    if abs(adjust_robot_errors) > max_robot_error
-        adjust_robot_errors = max_robot_error * sign(adjust_robot_errors);
-    end
-    
-    %Adjustments due to the optical information
+       
+    %Adjustments due to the sonar information
     optical_data = pioneer_read_sonars;
     
     if((x_init_real - x_ref)^2 + (y_init_real - y_ref)^2) < (4500^2 + 2100^2)
@@ -253,14 +247,16 @@ while point_index ~= path_real_len
     %50 degrees sonars check
     if(optical_data(2) <= 200)
         lateral_sensors_status(2) = 2;
-        adjust_optical = adjust_optical - (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(2));
+        disp('ajuste sonar 50º esquerda');
+        adjust_optical = adjust_optical - (135 - abs(sensors_angles(2)))*(200 - optical_data(2));
     elseif(optical_data(2) < 300)
         lateral_sensors_status(2) = 1;
     end
     
     if(optical_data(7) <= 200)
         lateral_sensors_status(3) = 2;
-        adjust_optical = adjust_optical + (135 - abs(sensors_angles(7)))*(sonar_alert_dist_level_1 - optical_data(7));
+        disp('ajuste sonar 50º direita');
+        adjust_optical = adjust_optical + (135 - abs(sensors_angles(7)))*(200 - optical_data(7));
     elseif(optical_data(7) < 300)
         lateral_sensors_status(3) = 1;
     end
@@ -276,20 +272,37 @@ while point_index ~= path_real_len
         end
         if(optical_data(i) < 500)
                 if i < 5
-                    adjust_optical = adjust_optical - (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(i));
+                    adjust_optical = adjust_optical - (135 - abs(sensors_angles(i)))*(500 - optical_data(i));
                 else
-                    adjust_optical = adjust_optical + (135 - abs(sensors_angles(2)))*(sonar_alert_dist_level_1 - optical_data(i));
+                    adjust_optical = adjust_optical + (135 - abs(sensors_angles(i)))*(500 - optical_data(i));
                 end
         end
     end
     
     adjust_optical = adjust_optical / 4000*scale_error*10;
     
+    if abs(adjust_robot_errors2) > 15 * robot_internal_error
+        adjust_robot_errors3 = adjust_robot_errors3 * 0.3;
+    end
+    
+    if abs(adjust_optical) > 15 * robot_internal_error
+        adjust_robot_errors3 = 0.3 * adjust_robot_errors3;
+        adjust_robot_errors2 = 0.3 * adjust_robot_errors2;
+    end
+    
+    adjust_robot_errors = adjust_robot_errors2 + adjust_robot_errors3;
+    
+    if abs(adjust_robot_errors) > max_robot_error
+        adjust_robot_errors = max_robot_error * sign(adjust_robot_errors);
+    end
+    
     w_real = fix(w_ref + adjust_robot_errors + adjust_optical);
     
     if(w_real > 0 && (lateral_sensors_status(1) == 2 || lateral_sensors_status(1) == 1 || lateral_sensors_status(2) == 1))
+        disp('ajuste sonar 90º esquerda');
         w_real = 0;
     elseif(w_real < 0 && ((lateral_sensors_status(4) == 2 || lateral_sensors_status(4) == 1 || lateral_sensors_status(3) == 1)))
+        disp('ajuste sonar 90º direita');
         w_real = 0;
     end
     
@@ -312,7 +325,7 @@ while point_index ~= path_real_len
         counter = counter + pause_time;
         if((((x_init_real - x_ref)^2 + (y_init_real - y_ref)^2) > (4500^2 + 2400^2)) && mod(counter, 10) == 0)
             disp('correcçao horizontal')
-           corrected_horizontal = true;
+%            corrected_horizontal = true;
            w_real = w_real - fix(0.044747349*360/(2*pi));
 %            v_real = v_init + 25;
         end

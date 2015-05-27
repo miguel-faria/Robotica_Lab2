@@ -27,7 +27,7 @@ turn_correct = true;
 x_init = 50;
 y_init = 60;
 % theta_initi = input('Robot initial orientation: ');
-v_init = 125;
+v_init = 100;
 w_init = 0;
 time_period = 1;
 sp_COM = 'COM11';
@@ -144,8 +144,8 @@ while point_index ~= path_real_len
         fprintf('Segunda Metade - %d\n', point_index);
     end
     
-    if point_index == 703
-        point_index = point_index + 20;
+    if point_index == 587
+        point_index = 634;
     end
     
     if point_index == path_real_len
@@ -154,7 +154,6 @@ while point_index ~= path_real_len
     end
     
     if(point_index == last_point_index)
-        disp('OLA!!!');
         if (last_point_index_counter == 2)
             point_index = point_index + 1;
             last_point_index_counter = 0;

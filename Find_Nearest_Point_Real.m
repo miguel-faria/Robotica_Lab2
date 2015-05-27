@@ -6,7 +6,7 @@ function [imin] = Find_Nearest_Point_Real(x, y, path, last_index)
 imin = last_index;
 min_val = (path(last_index,2)-x)^2 + (path(last_index,1)-y)^2;
 
-max_index = min(last_index+20,length(path));
+max_index = min(last_index + 10,length(path));
 
 for i = max(2,last_index+1):max_index;
     if min_val > (path(i,2)-x)^2 + (path(i,1)-y)^2;

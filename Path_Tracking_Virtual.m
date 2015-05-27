@@ -81,12 +81,12 @@ while point_index ~= path_len
     plot(path(:,1),path(:,2));
     plot(x,y,'r*');
 %     plot(x_ref,y_ref,'b*');
-    %fprintf('X: %2.4f\tY: %2.4f\nX_REF: %2.4f\tY_REF: %2.4f\n\n', x, y, x_ref, y_ref); %hold off;
-    fprintf('theta: %2.4f\n',theta); %hold off;
+    fprintf('X: %2.4f\tY: %2.4f\nX_REF: %2.4f\tY_REF: %2.4f\n\n', x, y, x_ref, y_ref); %hold off;
+%     fprintf('theta: %2.4f\n',theta); %hold off;
 %     figure(2); hold on;
     subplot(1,2,2); plot(ref_velocities(:,2), 'b*'); hold on;
     subplot(1,2,2); plot(velocities_path(:,2),'r*'); hold off;
-%     pause(0.0005);
+    pause(0.0005);
 end
 
 hold off;

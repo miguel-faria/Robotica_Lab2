@@ -3,6 +3,7 @@ function [ path_points ] = A_Star_best_path( map, nav_points, s_tree ,waypoints 
 %passes through the given waypoints. To note that the waypoints must be at
 %least 2.
 
+path_points = [];
 path_temp = [];
 n_points = size(waypoints);
 
@@ -26,9 +27,16 @@ for i = 1:n_points(1,1)
     end
 end
 
+index = 1;
 image(map); hold on;
 if ~isempty(path_temp)
-    path_points = [path_temp(:,2) path_temp(:,1)];
+    path_points = [path_temp(1,2) path_temp(1,1)];
+    for i = 2:length(path_temp)
+       if (sqrt((path_temp(i,2) - path_points(index,1))^2 + (path_temp(i,1) - path_points(index,2))^2) > 10)
+            path_points = [path_points; path_temp(i,2) path_temp(i,1)];
+            index = index + 1;
+       end
+    end
     plot(waypoints(:,1), waypoints(:,2), 'ko');
     plot(path_points(:,1), path_points(:,2), 'r*');
     hold off;

@@ -5,11 +5,11 @@ function [ path, x, y ] = Create_Path( map, path_points, mode )
 %the kind of interpolation used (1 - pchip, 2 - spline, 3 - use static path, 4 - use static path 2)
 
 if mode == 1
-    t = linspace(0,850,length(path_points(:,1)))';
+    t = linspace(0,1000,length(path_points(:,1)))';
     ppx = pchip(t, path_points(:,2));
     ppy = pchip(t, path_points(:,1));
-    x = ppval(ppx, linspace(0,850,850))';
-    y = ppval(ppy, linspace(0,850,850))';
+    x = ppval(ppx, linspace(0,1000,1000))';
+    y = ppval(ppy, linspace(0,1000,1000))';
     path = [y, x];
 
     image(map);hold on;

@@ -27,7 +27,7 @@ turn_correct = true;
 x_init = 50;
 y_init = 60;
 % theta_initi = input('Robot initial orientation: ');
-v_init = 100;
+v_init = 125;
 w_init = 0;
 time_period = 1;
 sp_COM = 'COM11';
@@ -37,7 +37,7 @@ path_points = [];
 if mode < 3 && mode > 0
      waypoints = [x_init y_init; 54 100; 56 110; 58 125; 64 140; 130 144; 412 144; 426 144; 433 172; 433 415; 425 433; 165 433; 144 419; ...
          144 172; 137 155; 130 144; 64 140; 58 125; 56 110; 54 100; x_init y_init];
-%         waypoints = [x_init y_init; 54 100; 56 110; 58 125; 64 140; 130 144; 132.5 150; 135 155; 138 165; 140 415; 155 430; 420 430; 433 420; 433 170; 420 145; ...
+%         waypoints = [x_init y_init; 54 100; 56 110; 58 125; 64 140; 140 144; 140 155; 144 172; 144 419; 165 433; 425 433; 433 415; 433 172; 426 144; ...
 %          130 144; 64 140; 58 125; 56 110; 54 100; x_init y_init];
 %     waypoints = [x_init y_init; 50 100; 45 120; 45 130; 50 140; 130 145;415 145; 435 175; 435 415; 415 430; 160 430; 140 415; 140 175; 130 145; 58 145; 50 120; x_init y_init];
 %     waypoints = [x_init y_init; 420 145; 433 170; 433 420; 420 430; 155 430; 140 415; 135 165; 135 155; x_init y_init];
@@ -144,12 +144,11 @@ while point_index ~= path_real_len
         fprintf('Segunda Metade - %d\n', point_index);
     end
     
-    if point_index == 587
-        point_index = 634;
-    end
+%     if point_index == 587
+%         point_index = 634;
+%     end
     
-    if point_index == path_real_len
-        pioneer_close(sp);
+    if (point_index == path_real_len || ((point_index > half_path_real_len ) && (sqrt((x_init - x)^2 + (y_init - y)^2) <= 2)))
         break;
     end
     
@@ -403,6 +402,8 @@ while point_index ~= path_real_len
 end
 % stop(timer_obj);
 % delete(timer_obj);
+pioneer_set_controls(sp,0,0);
+pioneer_close(sp);
 serial_port_stop(sp);
 
 format short;

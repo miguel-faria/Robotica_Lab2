@@ -1,4 +1,4 @@
-function [ robot_path,rec_ref,rec_real ] = Path_Tracking_Virtual( path, speed, delta_time, map)
+function [ robot_path, rec_ref, rec_real, ref_velocities, velocities_path ] = Path_Tracking_Virtual( path, speed, delta_time, map)
 %Path_Tracking_Virtual - virtual simulation for the robot following a given
 %path with a certain speed and interval between communications. This
 %function also prints on the map the robot current position and the
